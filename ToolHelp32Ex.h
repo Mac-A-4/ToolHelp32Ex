@@ -60,9 +60,7 @@ namespace ToolHelp32Ex {
 	static std::vector<_EntryType> List(DWORD _Type, DWORD _ID, const FirstProc<_EntryType>& _First, const NextProc<_EntryType>& _Next) {
 		std::vector<_EntryType> vector;
 		Iter<_EntryType>(_Type, _ID, _First, _Next, [&](const _EntryType& e) -> bool {
-			if (_Proc(e)) {
-				vector.push_back(e);
-			}
+			vector.push_back(e);
 			return true;
 		});
 		return vector;
@@ -75,7 +73,9 @@ namespace ToolHelp32Ex {
 	static std::vector<_EntryType> List(DWORD _Type, DWORD _ID, const FirstProc<_EntryType>& _First, const NextProc<_EntryType>& _Next, const ListProc<_EntryType>& _Proc) {
 		std::vector<_EntryType> vector;
 		Iter<_EntryType>(_Type, _ID, _First, _Next, [&](const _EntryType& e) -> bool {
-			vector.push_back(e);
+			if (_Proc(e)) {
+				vector.push_back(e);
+			}
 			return true;
 			});
 		return vector;
