@@ -4,7 +4,6 @@
 #include <functional>
 #include <exception>
 #include <stdexcept>
-#include <optional>
 #include <vector>
 
 namespace ToolHelp32Ex {
@@ -42,9 +41,9 @@ namespace ToolHelp32Ex {
 	using FindProc = std::function<bool(const _EntryType&)>;
 
 	template <typename _EntryType>
-	static std::optional<_EntryType> Find(DWORD _Type, DWORD _ID, const FirstProc<_EntryType>& _First, const NextProc<_EntryType>& _Next, const FindProc<_EntryType>& _Proc) {
-		std::optional<_EntryType> entry;
-		Iter<_EntryType>(_Type, _ID, _First, _Next, [&](const _EntryType& e) -> bool {
+	static _EntryType Find(DWORD _Type, DWORD _ID, const FirstProc<_EntryType>& _First, const NextProc<_EntryType>& _Next, const FindProc<_EntryType>& _Proc) {
+		_EntryType entry = { 0 };
+		if (Iter<_EntryType>(_Type, _ID, _First, _Next, [&](const _EntryType& e) -> bool {
 			if (_Proc(e)) {
 				entry = e;
 				return false;
@@ -52,7 +51,10 @@ namespace ToolHelp32Ex {
 			else {
 				return true;
 			}
-		});
+		})) {
+			// iteration didn't yield a match
+			throw Error("ToolHelp32Ex: No Match Found.");
+		}
 		return entry;
 	}
 
@@ -93,15 +95,15 @@ namespace ToolHelp32Ex {
 		return Iter<THREADENTRY32>(TH32CS_SNAPTHREAD, NULL, Thread32First, Thread32Next, _Proc);
 	}
 
-	static std::optional<PROCESSENTRY32> FindProcess(const FindProc<PROCESSENTRY32>& _Proc) {
+	static PROCESSENTRY32 FindProcess(const FindProc<PROCESSENTRY32>& _Proc) {
 		return Find<PROCESSENTRY32>(TH32CS_SNAPPROCESS, NULL, Process32First, Process32Next, _Proc);
 	}
 
-	static std::optional<MODULEENTRY32> FindModule(DWORD _ID, const FindProc<MODULEENTRY32>& _Proc) {
+	static MODULEENTRY32 FindModule(DWORD _ID, const FindProc<MODULEENTRY32>& _Proc) {
 		return Find<MODULEENTRY32>(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, _ID, Module32First, Module32Next, _Proc);
 	}
 
-	static std::optional<THREADENTRY32> FindThread(const FindProc<THREADENTRY32>& _Proc) {
+	static THREADENTRY32 FindThread(const FindProc<THREADENTRY32>& _Proc) {
 		return Find<THREADENTRY32>(TH32CS_SNAPTHREAD, NULL, Thread32First, Thread32Next, _Proc);
 	}
 
